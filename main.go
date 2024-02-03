@@ -83,11 +83,12 @@ func isArabic(x string) bool {
 
 func isRoman(x string) bool {
 	for i := 0; i < len(x); i++ {
-		if !(x[i] == 'I' || x[i] == 'X' || x[i] == 'V') {
-			return false
+		if x[i] == 'I' || x[i] == 'X' || x[i] == 'V' ||
+			x[i] == 'L' || x[i] == 'C' {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 type Expression struct {
@@ -112,6 +113,10 @@ func (expr Expression) evaluate() string {
 		return intToRoman(res)
 	}
 	return strconv.Itoa(res)
+}
+
+func (expr Expression) isCorrect() bool {
+	return expr.a != NAN && expr.b != NAN && expr.operator != 0
 }
 
 func tokenize(str string) Expression {
@@ -140,8 +145,8 @@ func tokenize(str string) Expression {
 					a, e1 := strconv.ParseInt(terms[0], 10, 32)
 					b, e2 := strconv.ParseInt(terms[1], 10, 32)
 
-					if e1 == nil && e2 == nil {
-						res := Expression{int(a), int(b), byte(sign[0]), true}
+					if e1 == nil && e2 == nil && a <= 10 && b <= 10 {
+						res := Expression{int(a), int(b), byte(sign[0]), false}
 						return res
 					} else {
 						panic("Error: one of numbers is invalid")
@@ -151,6 +156,11 @@ func tokenize(str string) Expression {
 					panic("Error: Arabic and roman numbers have been mixed, or input string contain not a number.")
 				}
 			}
+		} else {
+			if len(tokens) != 1 {
+				panic("Error: the expression must only consists of 2 terms and an operator")
+			}
+
 		}
 	}
 	res := Expression{NAN, NAN, 0, false}
@@ -166,6 +176,9 @@ func main() {
 	}
 	//var terms [2]int
 	expr := tokenize(text)
+	if !expr.isCorrect() {
+		panic("Incorrect expresseion")
+	}
 	res := expr.evaluate()
 	fmt.Println(res)
 }
